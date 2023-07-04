@@ -1,0 +1,12 @@
+.phonebook {
+  width: 300px;
+  height: 300px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.noCont {
+  text-align: center;
+  color: white;
+  font-size: 18px;
+}
