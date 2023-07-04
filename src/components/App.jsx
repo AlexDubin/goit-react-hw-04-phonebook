@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import HeroSection from './HeroSection/HeroSection';
 import Section from './Section/Section';
 import ContactsList from './ContactsList/ContactsList';
@@ -6,36 +6,29 @@ import ContactForm from './ContactForm/ContactForm';
 import Filter from './Filter/Filter';
 import css from './App.module.css';
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+export const App = () => {
+  const [contacts, setContacts] = useState(JSON.parse(window.localStorage.getItem('contacts')) ?? []);
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
-    const savedContacts = localStorage.getItem('contacts');
+  useEffect(() => {
+    const savedContacts = window.localStorage.getItem('contacts');
 
     if (savedContacts) {
-      this.setState({ contacts: JSON.parse(savedContacts) });
+      setContacts(JSON.parse(savedContacts));
     }
-  }
+  }, []);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { contacts } = this.state;
+  useEffect(() => {
+    window.localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-    if (prevState.contacts !== contacts) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-    }
-  }
-
-  handleFilterChange = filter => {
-    this.setState({ filter });
+  const handleFilterChange = (filter) => {
+    setFilter(filter);
   };
 
-  handleAddContact = newContact => {
-    const { contacts } = this.state;
+  const handleAddContact = (newContact) => {
     const existingContact = contacts.find(
-      contact =>
+      (contact) =>
         contact.name.toLowerCase() === newContact.name.toLowerCase() ||
         contact.number === newContact.number
     );
@@ -43,50 +36,42 @@ export class App extends Component {
     if (existingContact) {
       alert(`${newContact.name} is already in contacts.`);
     } else {
-      this.setState(prevState => ({
-        contacts: [...prevState.contacts, newContact],
-      }));
+      setContacts((prevContacts) => [...prevContacts, newContact]);
     }
   };
 
-  handleDeleteContact = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
+  const handleDeleteContact = (contactId) => {
+    setContacts((prevContacts) =>
+      prevContacts.filter((contact) => contact.id !== contactId)
+    );
   };
 
-  render() {
-    const { filter, contacts } = this.state;
-    const filteredContacts = contacts.filter(
-      contact =>
-        contact.name.toLowerCase().includes(filter.toLowerCase()) ||
-        contact.number.includes(filter)
-    );
+  const filteredContacts = contacts.filter(
+    (contact) =>
+      contact.name.toLowerCase().includes(filter.toLowerCase()) ||
+      contact.number.includes(filter)
+  );
 
-    return (
-      <div className={css.phonebook}>
-        <HeroSection herotitle="Phonebook">
-          <ContactForm handleAddContact={this.handleAddContact} />
-        </HeroSection>
-        <Section title="Contacts">
-          {contacts.length > 0 ? (
-            <>
-              <Filter
-                filter={filter}
-                handleFilterChange={this.handleFilterChange}
-              />
-              <ContactsList
-                contacts={filteredContacts}
-                handleDeleteContact={this.handleDeleteContact}
-              />
-            </>
-          ) : (
-            <p className={css.noCont}>No saved contacts!</p>
-          )}
-        </Section>
-      </div>
-    );
-  }
-}
+  return (
+    <div className={css.phonebook}>
+      <HeroSection herotitle="Phonebook">
+        <ContactForm handleAddContact={handleAddContact} />
+      </HeroSection>
+      <Section title="Contacts">
+        {contacts.length > 0 ? (
+          <>
+            <Filter filter={filter} handleFilterChange={handleFilterChange} />
+            <ContactsList
+              contacts={filteredContacts}
+              handleDeleteContact={handleDeleteContact}
+            />
+          </>
+        ) : (
+          <p className={css.noCont}>No saved contacts!</p>
+        )}
+      </Section>
+    </div>
+  );
+};
 
 export default App;
